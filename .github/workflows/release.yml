@@ -249,8 +249,8 @@ jobs:
             mkdir -p releases
             cp "$RELEASE_ZIP" releases/
 
-            # Set download URL prefix for GitHub Releases
-            DOWNLOAD_URL_PREFIX="https://github.com/southflowpeak/Pin/releases/download/${GITHUB_REF_NAME}"
+            # Set download URL prefix for GitHub Releases (trailing slash required)
+            DOWNLOAD_URL_PREFIX="https://github.com/southflowpeak/Pin/releases/download/${GITHUB_REF_NAME}/"
 
             # Generate appcast.xml using generate_appcast
             "$GENERATE_APPCAST" \
