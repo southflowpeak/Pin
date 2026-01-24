@@ -6,6 +6,14 @@
         <description>Pin app updates</description>
         <language>en</language>
         <item>
+            <title>0.1.1</title>
+            <pubDate>Sat, 24 Jan 2026 09:24:43 +0000</pubDate>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/southflowpeak/Pin/releases/download/v0.1.1/Pin-v0.1.1.zip" length="3055208" type="application/octet-stream" sparkle:edSignature="p9ZgfXQKFBG509bv2PGzpgGhQOj1Kn3PFx7AvTNv1MocNfi3CjivSwonJQ8Efmz6pjGzmbcKz6+mj56Wbv2hBw=="/>
+        </item>
+        <item>
             <title>0.1.0</title>
             <pubDate>Sat, 24 Jan 2026 07:12:54 +0000</pubDate>
             <sparkle:version>9</sparkle:version>
