@@ -3,7 +3,7 @@
   "title": "Pin",
   "description": "Extension for Pin.app. Pin any window to stay always on top using a mirror overlay.",
   "icon": "extension-icon.png",
-  "author": "developer",
+  "author": "tanb",
   "categories": ["Productivity", "System"],
   "license": "MIT",
   "commands": [
