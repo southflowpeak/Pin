@@ -1,8 +1,8 @@
+# Pin
+
 <p align="center">
   <img src="pin-agent/Pin/Resources/Assets.xcassets/AppIcon.appiconset/pin-macOS-128x128@2x.png" width="128" height="128" alt="Pin App Icon">
 </p>
-
-<h1 align="center">📌 Pin</h1>
 
 <p align="center">
   <strong>Keep any window always on top on macOS</strong>
