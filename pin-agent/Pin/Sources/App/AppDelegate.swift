@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor private var stateMachine: AgentStateMachine?
     @MainActor private var statusBarController: StatusBarController?
+    @MainActor private var sparkleUpdater: SparkleUpdater?
 
     /// Shared response file path for IPC
     static let responseFilePath = "/tmp/pin-response.json"
@@ -12,10 +13,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func applicationDidFinishLaunching(_ notification: Notification) {
         stateMachine = AgentStateMachine()
+        sparkleUpdater = SparkleUpdater()
 
         // Setup menu bar icon
         if let stateMachine = stateMachine {
-            statusBarController = StatusBarController(stateMachine: stateMachine)
+            statusBarController = StatusBarController(
+                stateMachine: stateMachine,
+                sparkleUpdater: sparkleUpdater
+            )
         }
 
         // Register URL scheme handler

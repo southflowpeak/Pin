@@ -39,5 +39,9 @@
 	<string>NSApplication</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Screen Recording permission is required to capture window content for the pin mirror feature.</string>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/southflowpeak/Pin/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>REPLACE_WITH_PUBLIC_KEY</string>
 </dict>
 </plist>

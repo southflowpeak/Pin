@@ -5,6 +5,11 @@ options:
     macOS: "14.0"
   minimumXcodeGenVersion: "2.0"
 
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
+
 settings:
   base:
     SWIFT_VERSION: "5.9"
@@ -17,6 +22,8 @@ targets:
     sources:
       - path: Pin/Sources
       - path: Pin/Resources
+    dependencies:
+      - package: Sparkle
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.southflowpeak.Pin

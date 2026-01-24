@@ -6,9 +6,11 @@ final class StatusBarController {
 
     private var statusItem: NSStatusItem?
     private weak var stateMachine: AgentStateMachine?
+    private var sparkleUpdater: SparkleUpdater?
 
-    init(stateMachine: AgentStateMachine) {
+    init(stateMachine: AgentStateMachine, sparkleUpdater: SparkleUpdater?) {
         self.stateMachine = stateMachine
+        self.sparkleUpdater = sparkleUpdater
         setupStatusItem()
     }
 
@@ -80,6 +82,13 @@ final class StatusBarController {
 
         menu.addItem(NSMenuItem.separator())
 
+        // Check for Updates
+        let updateItem = NSMenuItem(title: "Check for Updates...", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         // Quit
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
@@ -109,6 +118,10 @@ final class StatusBarController {
     @objc private func unpinWindow() {
         stateMachine?.unpin()
         print("Window unpinned")
+    }
+
+    @objc private func checkForUpdates() {
+        sparkleUpdater?.checkForUpdates()
     }
 
     @objc private func quitApp() {
