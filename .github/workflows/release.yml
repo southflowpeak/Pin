@@ -98,15 +98,23 @@ jobs:
             build
 
       - name: Sign Sparkle Components
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           APP_PATH="pin-agent/build/Build/Products/Release/Pin.app"
-          IDENTITY="Developer ID Application: $APPLE_TEAM_ID"
           SPARKLE_FRAMEWORK="$APP_PATH/Contents/Frameworks/Sparkle.framework"
 
           if [ -d "$SPARKLE_FRAMEWORK" ]; then
             echo "Signing Sparkle components..."
+
+            # Sign all Mach-O binaries inside Sparkle.framework (inside-out order)
+            # Find all executable files and sign them
+            find "$SPARKLE_FRAMEWORK" -type f -perm +111 | while read binary; do
+              # Check if it's a Mach-O binary
+              if file "$binary" | grep -q "Mach-O"; then
+                echo "Signing binary: $binary"
+                codesign --force --options runtime --sign "Developer ID Application" \
+                  --keychain "$KEYCHAIN_PATH" --timestamp "$binary"
+              fi
+            done
 
             # Sign XPC services
             find "$SPARKLE_FRAMEWORK" -name "*.xpc" -type d | while read xpc; do
@@ -115,13 +123,12 @@ jobs:
                 --keychain "$KEYCHAIN_PATH" --timestamp "$xpc"
             done
 
-            # Sign Autoupdate helper app
-            AUTOUPDATE="$SPARKLE_FRAMEWORK/Versions/B/Autoupdate.app"
-            if [ -d "$AUTOUPDATE" ]; then
-              echo "Signing Autoupdate.app"
+            # Sign helper apps (Updater.app, etc.)
+            find "$SPARKLE_FRAMEWORK" -name "*.app" -type d | while read app; do
+              echo "Signing app: $app"
               codesign --force --options runtime --sign "Developer ID Application" \
-                --keychain "$KEYCHAIN_PATH" --timestamp "$AUTOUPDATE"
-            fi
+                --keychain "$KEYCHAIN_PATH" --timestamp "$app"
+            done
 
             # Sign Sparkle framework itself
             echo "Signing Sparkle.framework"
