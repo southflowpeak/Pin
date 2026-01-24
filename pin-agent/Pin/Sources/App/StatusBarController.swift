@@ -110,7 +110,7 @@ final class StatusBarController {
                 print("Pinned window: \(windowInfo.appName)")
             } catch {
                 print("Failed to pin window: \(error)")
-                showAlert(title: "Failed to Pin", message: error.localizedDescription)
+                showAlert(title: "Failed to Pin", message: Self.humanReadableErrorMessage(from: error))
             }
         }
     }
@@ -184,6 +184,17 @@ final class StatusBarController {
         }
 
         return windows
+    }
+
+    private static func humanReadableErrorMessage(from error: Error) -> String {
+        let description = error.localizedDescription
+
+        // TCC error (Screen Recording permission denied)
+        if description.contains("TCCs") || description.contains("TCC") {
+            return "Screen Recording permission is required. Please enable it in System Settings > Privacy & Security > Screen Recording, then restart the app."
+        }
+
+        return description
     }
 
     private func showAlert(title: String, message: String) {
