@@ -239,9 +239,16 @@ jobs:
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          # Find sign_update tool from Sparkle framework
-          SPARKLE_PATH=$(find pin-agent/build -name "Sparkle.framework" -type d | head -1)
-          SIGN_UPDATE="$SPARKLE_PATH/Versions/B/Resources/sign_update"
+          # Find sign_update tool - search in multiple locations
+          echo "Searching for sign_update tool..."
+          SIGN_UPDATE=$(find pin-agent/build -name "sign_update" -type f 2>/dev/null | head -1)
+
+          if [ -z "$SIGN_UPDATE" ]; then
+            echo "sign_update not found in build directory, checking app bundle..."
+            SIGN_UPDATE=$(find "$APP_PATH/Contents/Frameworks" -name "sign_update" -type f 2>/dev/null | head -1)
+          fi
+
+          echo "Found sign_update at: $SIGN_UPDATE"
 
           if [ -x "$SIGN_UPDATE" ] && [ -n "$SPARKLE_PRIVATE_KEY" ]; then
             # Generate EdDSA signature
@@ -255,6 +262,11 @@ jobs:
             fi
           else
             echo "Warning: sign_update tool not found or SPARKLE_PRIVATE_KEY not set"
+            echo "SIGN_UPDATE path: $SIGN_UPDATE"
+            echo "SPARKLE_PRIVATE_KEY set: $([ -n \"$SPARKLE_PRIVATE_KEY\" ] && echo 'yes' || echo 'no')"
+            # List available files for debugging
+            echo "Files in Sparkle.framework:"
+            find pin-agent/build -path "*/Sparkle.framework/*" -type f 2>/dev/null | head -20 || echo "No files found"
           fi
 
       - name: Update appcast.xml
