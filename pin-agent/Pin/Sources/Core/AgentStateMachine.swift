@@ -94,10 +94,13 @@ final class AgentStateMachine {
         }
         mirrorController.onGeometryChange = { [weak self] newSize in
             guard let self = self else { return }
+            // Use the screen where the mirror window is displayed, not NSScreen.main
+            // This ensures correct scaling when moving between Retina and non-Retina screens
+            let screen = self.mirrorWindowController?.currentScreen
             self.windowCaptureManager?.updateStreamSize(
                 newWidth: newSize.width,
                 newHeight: newSize.height,
-                screen: NSScreen.main
+                screen: screen
             )
         }
         mirrorController.onUnpin = { [weak self] in

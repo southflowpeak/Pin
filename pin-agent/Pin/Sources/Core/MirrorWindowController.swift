@@ -42,6 +42,9 @@ final class MirrorWindowController: NSObject {
     /// Access to the capture manager for external control
     var capture: WindowCaptureManager { captureManager }
 
+    /// Get the screen where the mirror window is currently displayed
+    var currentScreen: NSScreen? { window?.screen }
+
     init(targetInfo: TargetWindowInfo, captureManager: WindowCaptureManager) {
         self.targetInfo = targetInfo
         self.captureManager = captureManager
@@ -138,6 +141,15 @@ final class MirrorWindowController: NSObject {
         let videoLayer = captureManager.videoLayer
         videoLayer.frame = contentView.bounds
         videoLayer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
+
+        // Critical: Set videoGravity to resize content to fill the layer
+        videoLayer.videoGravity = .resizeAspectFill
+
+        // Set contentsScale based on the window's backing scale factor
+        if let screen = window?.screen {
+            videoLayer.contentsScale = screen.backingScaleFactor
+        }
+
         // Insert video layer below hover handler view
         layer.insertSublayer(videoLayer, at: 0)
     }
@@ -145,7 +157,13 @@ final class MirrorWindowController: NSObject {
     /// Update the video layer frame when window size changes
     func updateVideoLayerFrame() {
         guard let contentView = window?.contentView else { return }
-        captureManager.videoLayer.frame = contentView.bounds
+        let videoLayer = captureManager.videoLayer
+        videoLayer.frame = contentView.bounds
+
+        // Update contentsScale when screen changes (e.g., moving between Retina and non-Retina)
+        if let screen = window?.screen {
+            videoLayer.contentsScale = screen.backingScaleFactor
+        }
     }
 
     /// Handle hover enter on mirror window
@@ -286,17 +304,64 @@ final class MirrorWindowController: NSObject {
     }
 
     private func convertToScreenFrame(_ cgRect: CGRect) -> NSRect {
-        // CGRect uses top-left origin, NSRect uses bottom-left
-        guard let screen = NSScreen.main else {
+        // CGRect uses top-left origin (Quartz coordinates)
+        // NSRect uses bottom-left origin (Cocoa coordinates)
+        guard let primaryScreen = NSScreen.screens.first else {
             return NSRect(origin: .zero, size: cgRect.size)
         }
 
-        let screenHeight = screen.frame.height
-        let y = screenHeight - cgRect.origin.y - cgRect.height
+        let primaryScreenHeight = primaryScreen.frame.height
+
+        // First, calculate the basic Cocoa y coordinate
+        let basicY = primaryScreenHeight - cgRect.origin.y - cgRect.height
+
+        // Find which screen contains this rect (using center point)
+        let cocoaCenterY = primaryScreenHeight - cgRect.origin.y - cgRect.height / 2
+        let cocoaCenter = NSPoint(x: cgRect.origin.x + cgRect.width / 2, y: cocoaCenterY)
+
+        var finalY = basicY
+
+        // Check if the rect is on a secondary screen with a different origin.y
+        for screen in NSScreen.screens {
+            if screen.frame.contains(cocoaCenter) && screen != primaryScreen {
+                // Found the target screen - it's not the primary
+                // The screen's origin.y represents its vertical offset from the primary screen's origin
+                // If screens have their tops aligned, secondary screen has origin.y > 0
+                // This offset needs to be accounted for in the coordinate conversion
+
+                // Calculate what the y should be relative to this screen
+                let screenMinY = screen.frame.minY
+                let screenMaxY = screen.frame.maxY
+
+                // The Quartz y coordinate is relative to the top of the global screen space
+                // For screens with tops aligned, Quartz y=0 is at the top of both screens
+                // But the Cocoa origin.y of secondary screen is offset by (primaryHeight - secondaryHeight)
+
+                // Adjust: the window's position should be calculated relative to the target screen
+                // Quartz top of target screen (in global coords) = primaryHeight - screenMaxY
+                let quartzScreenTop = primaryScreenHeight - screenMaxY
+
+                // Window's position relative to target screen's top (in Quartz)
+                let relativeQuartzY = cgRect.origin.y - quartzScreenTop
+
+                // Convert to Cocoa: position from screen's bottom
+                finalY = screenMaxY - relativeQuartzY - cgRect.height
+
+                print("=== Secondary screen adjustment ===")
+                print("  Input CGRect: \(cgRect)")
+                print("  Target screen: \(screen.frame), scale=\(screen.backingScaleFactor)")
+                print("  Primary screen scale: \(primaryScreen.backingScaleFactor)")
+                print("  Quartz screen top: \(quartzScreenTop)")
+                print("  Relative Quartz y: \(relativeQuartzY)")
+                print("  Basic y: \(basicY), Final y: \(finalY)")
+                print("===================================")
+                break
+            }
+        }
 
         return NSRect(
             x: cgRect.origin.x,
-            y: y,
+            y: finalY,
             width: cgRect.width,
             height: cgRect.height
         )
@@ -319,6 +384,13 @@ final class MirrorWindowController: NSObject {
     private func updateWindowFrame(_ bounds: CGRect) {
         let frame = convertToScreenFrame(bounds)
         window?.setFrame(frame, display: true, animate: false)
+
+        // Debug: verify actual frame after setFrame
+        if let actualFrame = window?.frame {
+            if actualFrame != frame {
+                print("!!! Frame mismatch: requested=\(frame), actual=\(actualFrame)")
+            }
+        }
 
         // Update pin button window position
         updatePinButtonPosition(relativeTo: frame)
