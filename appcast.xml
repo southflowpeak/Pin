@@ -7,6 +7,14 @@
         <language>en</language>
         <item>
             <title>0.1.0</title>
+            <pubDate>Sat, 24 Jan 2026 07:12:54 +0000</pubDate>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/southflowpeak/Pin/releases/download/v0.1.0/Pin-v0.1.0.zip" length="3053063" type="application/octet-stream" sparkle:edSignature="3Cqbqqu4O27f3XNnyhrlRUudYW/kaZLpJhZvgPUj3Dw7ssqIr0hi1ScciqH7GN77FZHZ+bc+DZwpSiuZJJFhCA=="/>
+        </item>
+        <item>
+            <title>0.1.0</title>
             <pubDate>Sat, 24 Jan 2026 07:04:38 +0000</pubDate>
             <sparkle:version>8</sparkle:version>
             <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
