@@ -81,7 +81,9 @@ function clearResponseFile(): void {
 /**
  * Read response from the response file with retry
  */
-async function readResponse(maxWaitMs = 2000): Promise<Record<string, unknown> | null> {
+async function readResponse(
+  maxWaitMs = 2000,
+): Promise<Record<string, unknown> | null> {
   const startTime = Date.now();
   const checkInterval = 100;
 

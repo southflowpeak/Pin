@@ -1,6 +1,18 @@
-import { List, Icon, Color, ActionPanel, Action, popToRoot } from "@raycast/api";
+import {
+  List,
+  Icon,
+  Color,
+  ActionPanel,
+  Action,
+  popToRoot,
+} from "@raycast/api";
 import { useEffect, useState } from "react";
-import { listWindows, pinWindowById, isAgentRunning, WindowInfo } from "./utils/agent-ipc";
+import {
+  listWindows,
+  pinWindowById,
+  isAgentRunning,
+  WindowInfo,
+} from "./utils/agent-ipc";
 
 export default function Command() {
   const [windows, setWindows] = useState<WindowInfo[]>([]);
@@ -24,7 +36,12 @@ export default function Command() {
   }, []);
 
   if (loading) {
-    return <List isLoading={true} searchBarPlaceholder="Search windows by app name..." />;
+    return (
+      <List
+        isLoading={true}
+        searchBarPlaceholder="Search windows by app name..."
+      />
+    );
   }
 
   if (!agentRunning) {
