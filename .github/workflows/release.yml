@@ -266,6 +266,26 @@ jobs:
             exit 1
           fi
 
+      - name: Commit appcast.xml to main
+        if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-')
+        run: |
+          # Save generated appcast.xml
+          cp appcast.xml /tmp/appcast.xml.generated
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git pull origin main
+
+          # Restore generated appcast.xml
+          cp /tmp/appcast.xml.generated appcast.xml
+
+          git add appcast.xml
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: update appcast.xml for ${GITHUB_REF_NAME}"
+          git push origin main
+
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
         uses: softprops/action-gh-release@v2
