@@ -251,7 +251,7 @@ jobs:
           fi
 
       - name: Update appcast.xml
-        if: startsWith(github.ref, 'refs/tags/v') && env.SPARKLE_SIGNATURE != ''
+        if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') && env.SPARKLE_SIGNATURE != ''
         run: |
           VERSION="${MARKETING_VERSION}"
           DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
@@ -286,7 +286,7 @@ jobs:
           echo "appcast.xml updated with version ${VERSION}"
 
       - name: Commit appcast.xml
-        if: startsWith(github.ref, 'refs/tags/v') && env.SPARKLE_SIGNATURE != ''
+        if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') && env.SPARKLE_SIGNATURE != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
