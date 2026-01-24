@@ -13,9 +13,7 @@
 ## ✨ Features
 
 - 🪟 **Pin Any Window** - Select any window and keep it always visible on top
-- 🖱️ **Smart Hover** - Hover over the pinned window to make it transparent and interact with windows below
 - 📋 **Menu Bar Control** - Easily select and manage windows from the menu bar
-- 🔄 **Real-time Sync** - Follows the original window's position and size changes
 - 🔔 **Auto Updates** - Built-in automatic updates via Sparkle
 
 ## 📥 Installation
