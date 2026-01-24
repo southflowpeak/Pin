@@ -234,75 +234,37 @@ jobs:
           name: Pin-${{ env.VERSION }}
           path: ${{ env.RELEASE_ZIP }}
 
-      - name: Generate Sparkle Signature
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Generate appcast.xml
+        if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-')
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          # Find sign_update tool - search in multiple locations
-          echo "Searching for sign_update tool..."
-          SIGN_UPDATE=$(find pin-agent/build -name "sign_update" -type f 2>/dev/null | head -1)
+          # Find generate_appcast tool
+          echo "Searching for generate_appcast tool..."
+          GENERATE_APPCAST=$(find pin-agent/build -name "generate_appcast" -type f 2>/dev/null | head -1)
+          echo "Found generate_appcast at: $GENERATE_APPCAST"
 
-          if [ -z "$SIGN_UPDATE" ]; then
-            echo "sign_update not found in build directory, checking app bundle..."
-            SIGN_UPDATE=$(find "$APP_PATH/Contents/Frameworks" -name "sign_update" -type f 2>/dev/null | head -1)
-          fi
+          if [ -x "$GENERATE_APPCAST" ] && [ -n "$SPARKLE_PRIVATE_KEY" ]; then
+            # Create a directory for releases
+            mkdir -p releases
+            cp "$RELEASE_ZIP" releases/
 
-          echo "Found sign_update at: $SIGN_UPDATE"
+            # Set download URL prefix for GitHub Releases
+            DOWNLOAD_URL_PREFIX="https://github.com/southflowpeak/Pin/releases/download/${GITHUB_REF_NAME}"
 
-          if [ -x "$SIGN_UPDATE" ] && [ -n "$SPARKLE_PRIVATE_KEY" ]; then
-            # Generate EdDSA signature
-            SIGNATURE=$("$SIGN_UPDATE" "$RELEASE_ZIP" --ed-key-file <(echo "$SPARKLE_PRIVATE_KEY") 2>/dev/null || echo "")
+            # Generate appcast.xml using generate_appcast
+            "$GENERATE_APPCAST" \
+              --ed-key-file <(echo "$SPARKLE_PRIVATE_KEY") \
+              --download-url-prefix "$DOWNLOAD_URL_PREFIX" \
+              -o appcast.xml \
+              releases/
 
-            if [ -n "$SIGNATURE" ]; then
-              echo "SPARKLE_SIGNATURE=$SIGNATURE" >> $GITHUB_ENV
-              echo "Sparkle signature generated successfully"
-            else
-              echo "Warning: Failed to generate Sparkle signature"
-            fi
+            echo "appcast.xml generated successfully"
+            cat appcast.xml
           else
-            echo "Warning: sign_update tool not found or SPARKLE_PRIVATE_KEY not set"
-            echo "SIGN_UPDATE path: $SIGN_UPDATE"
-            echo "SPARKLE_PRIVATE_KEY set: $([ -n \"$SPARKLE_PRIVATE_KEY\" ] && echo 'yes' || echo 'no')"
-            # List available files for debugging
-            echo "Files in Sparkle.framework:"
-            find pin-agent/build -path "*/Sparkle.framework/*" -type f 2>/dev/null | head -20 || echo "No files found"
+            echo "Error: generate_appcast tool not found or SPARKLE_PRIVATE_KEY not set"
+            exit 1
           fi
-
-      - name: Update appcast.xml
-        if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') && env.SPARKLE_SIGNATURE != ''
-        run: |
-          VERSION="${MARKETING_VERSION}"
-          DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
-          FILESIZE=$(stat -f%z "$RELEASE_ZIP")
-          DOWNLOAD_URL="https://github.com/southflowpeak/Pin/releases/download/${GITHUB_REF_NAME}/Pin-${GITHUB_REF_NAME}.zip"
-
-          # Create new item entry
-          NEW_ITEM="    <item>
-              <title>Version ${VERSION}</title>
-              <pubDate>${DATE}</pubDate>
-              <sparkle:version>${BUILD_NUMBER}</sparkle:version>
-              <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
-              <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-              <enclosure
-                url=\"${DOWNLOAD_URL}\"
-                length=\"${FILESIZE}\"
-                type=\"application/octet-stream\"
-                sparkle:edSignature=\"${SPARKLE_SIGNATURE}\"
-              />
-            </item>"
-
-          # Insert new item after <language> tag
-          awk -v item="$NEW_ITEM" '
-            /<language>en<\/language>/ {
-              print
-              print item
-              next
-            }
-            { print }
-          ' appcast.xml > appcast.xml.tmp && mv appcast.xml.tmp appcast.xml
-
-          echo "appcast.xml updated with version ${VERSION}"
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
