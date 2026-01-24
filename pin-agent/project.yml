@@ -1,0 +1,37 @@
+name: Pin
+options:
+  bundleIdPrefix: com.southflowpeak
+  deploymentTarget:
+    macOS: "14.0"
+  minimumXcodeGenVersion: "2.0"
+
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+
+targets:
+  Pin:
+    type: application
+    platform: macOS
+    sources:
+      - path: Pin/Sources
+      - path: Pin/Resources
+    dependencies:
+      - package: Sparkle
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.southflowpeak.Pin
+        INFOPLIST_FILE: Pin/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Pin/Pin.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_IDENTITY: "-"
+        PRODUCT_NAME: Pin
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    entitlements:
+      path: Pin/Pin.entitlements
