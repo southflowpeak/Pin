@@ -10,6 +10,10 @@
 
 ---
 
+## 🎬 How it works
+
+See Pin in action: [southflowpeak.com/pin](https://southflowpeak.com/pin)
+
 ## ✨ Features
 
 - 🪟 **Pin Any Window** - Select any window and keep it always visible on top
