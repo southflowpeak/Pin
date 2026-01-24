@@ -2,4 +2,4 @@
 
 ## [Initial Version] - 2026-01-24
 
-- Raycast extension for controlling Pin.app
+- Control Pin.app via Raycast
