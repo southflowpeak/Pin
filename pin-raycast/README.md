@@ -1,6 +1,6 @@
 # Pin for Raycast
 
-A Raycast extension for controlling [Pin.app](https://github.com/southflowpeak/Pin) from Raycast.
+A simple Raycast extension for pinning any window to stay always on top via [Pin](https://southflowpeak.com/pin).
 
 ## About Pin.app
 
