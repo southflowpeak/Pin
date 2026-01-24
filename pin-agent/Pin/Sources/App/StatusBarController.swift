@@ -18,7 +18,7 @@ final class StatusBarController {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "pin.fill", accessibilityDescription: "Always On Top")
+            button.image = NSImage(systemSymbolName: "pin.fill", accessibilityDescription: "Pin")
             button.action = #selector(statusItemClicked)
             button.target = self
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
