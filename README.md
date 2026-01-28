@@ -17,6 +17,7 @@ See Pin in action: [southflowpeak.com/pin](https://southflowpeak.com/pin)
 ## ✨ Features
 
 - 🪟 **Pin Any Window** - Select any window and keep it always visible on top
+- 🔍 **Adjustable Opacity** - Make pinned windows semi-transparent (10% - 100%) to see through them
 - 📋 **Menu Bar Control** - Easily select and manage windows from the menu bar
 - 🔔 **Auto Updates** - Built-in automatic updates via Sparkle
 
