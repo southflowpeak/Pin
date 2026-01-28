@@ -5,6 +5,8 @@ import AppKit
 /// Checks and requests required system permissions
 final class PermissionChecker: Sendable {
 
+    static let shared = PermissionChecker()
+
     init() {}
 
     /// Check Screen Recording permission
@@ -43,6 +45,30 @@ final class PermissionChecker: Sendable {
             screenRecordingGranted: screenRecording,
             accessibilityGranted: accessibility
         )
+    }
+
+    /// Show an alert explaining Screen Recording permission is required
+    @MainActor
+    func showScreenRecordingPermissionAlert() {
+        let alert = NSAlert()
+        alert.messageText = "Screen Recording Permission Required"
+        alert.informativeText = "Pin needs Screen Recording permission to capture and display windows.\n\nPlease enable it in System Settings > Privacy & Security > Screen Recording, then restart the app."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open System Settings")
+        alert.addButton(withTitle: "Later")
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            openScreenRecordingSettings()
+        }
+    }
+
+    /// Open System Settings to Screen Recording pane
+    @MainActor
+    func openScreenRecordingSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+            NSWorkspace.shared.open(url)
+        }
     }
 }
 
