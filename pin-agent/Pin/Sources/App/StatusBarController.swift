@@ -7,11 +7,23 @@ final class StatusBarController {
     private var statusItem: NSStatusItem?
     private weak var stateMachine: AgentStateMachine?
     private var sparkleUpdater: SparkleUpdater?
+    private var opacitySlider: NSSlider?
 
     init(stateMachine: AgentStateMachine, sparkleUpdater: SparkleUpdater?) {
         self.stateMachine = stateMachine
         self.sparkleUpdater = sparkleUpdater
         setupStatusItem()
+        checkPermissions()
+    }
+
+    private func checkPermissions() {
+        Task {
+            let hasScreenRecording = await PermissionChecker.shared.checkScreenRecording()
+            if !hasScreenRecording {
+                print("Warning: Screen Recording permission not granted")
+                PermissionChecker.shared.showScreenRecordingPermissionAlert()
+            }
+        }
     }
 
     private func setupStatusItem() {
@@ -54,6 +66,12 @@ final class StatusBarController {
             let unpinItem = NSMenuItem(title: "Unpin", action: #selector(unpinWindow), keyEquivalent: "u")
             unpinItem.target = self
             menu.addItem(unpinItem)
+
+            menu.addItem(NSMenuItem.separator())
+
+            // Opacity slider
+            let opacityItem = createOpacityMenuItem()
+            menu.addItem(opacityItem)
         } else {
             // Window selection submenu (ピンされていない場合のみ表示)
             let windowsMenu = NSMenu()
@@ -110,7 +128,12 @@ final class StatusBarController {
                 print("Pinned window: \(windowInfo.appName)")
             } catch {
                 print("Failed to pin window: \(error)")
-                showAlert(title: "Failed to Pin", message: Self.humanReadableErrorMessage(from: error))
+                // Check if it's a Screen Recording permission error
+                if Self.isScreenRecordingPermissionError(error) {
+                    PermissionChecker.shared.showScreenRecordingPermissionAlert()
+                } else {
+                    showAlert(title: "Failed to Pin", message: error.localizedDescription)
+                }
             }
         }
     }
@@ -126,6 +149,38 @@ final class StatusBarController {
 
     @objc private func quitApp() {
         NSApplication.shared.terminate(nil)
+    }
+
+    // MARK: - Opacity Slider
+
+    private func createOpacityMenuItem() -> NSMenuItem {
+        let containerView = NSView(frame: NSRect(x: 0, y: 0, width: 200, height: 30))
+
+        // Label
+        let label = NSTextField(labelWithString: "Opacity")
+        label.frame = NSRect(x: 14, y: 5, width: 50, height: 20)
+        label.font = NSFont.menuFont(ofSize: 13)
+        containerView.addSubview(label)
+
+        // Slider (10% - 100%)
+        let slider = NSSlider(value: Double(stateMachine?.mirrorOpacity ?? 1.0),
+                              minValue: 0.1,
+                              maxValue: 1.0,
+                              target: self,
+                              action: #selector(opacitySliderChanged(_:)))
+        slider.frame = NSRect(x: 68, y: 5, width: 116, height: 20)
+        slider.isContinuous = true
+        containerView.addSubview(slider)
+        self.opacitySlider = slider
+
+        let menuItem = NSMenuItem()
+        menuItem.view = containerView
+        return menuItem
+    }
+
+    @objc private func opacitySliderChanged(_ sender: NSSlider) {
+        let opacity = Float(sender.doubleValue)
+        stateMachine?.setMirrorOpacity(opacity)
     }
 
     // MARK: - Helpers
@@ -186,15 +241,10 @@ final class StatusBarController {
         return windows
     }
 
-    private static func humanReadableErrorMessage(from error: Error) -> String {
+    private static func isScreenRecordingPermissionError(_ error: Error) -> Bool {
         let description = error.localizedDescription
-
         // TCC error (Screen Recording permission denied)
-        if description.contains("TCCs") || description.contains("TCC") {
-            return "Screen Recording permission is required. Please enable it in System Settings > Privacy & Security > Screen Recording, then restart the app."
-        }
-
-        return description
+        return description.contains("TCCs") || description.contains("TCC")
     }
 
     private func showAlert(title: String, message: String) {

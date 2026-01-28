@@ -23,6 +23,21 @@ final class AgentStateMachine {
     private var mirrorHiddenAt: Date?
     private let showMirrorDelay: TimeInterval = 0.5
 
+    // UserDefaults keys
+    private static let opacityKey = "mirrorOpacity"
+
+    /// Saved opacity value from UserDefaults (defaults to 1.0)
+    private var savedOpacity: Float {
+        get {
+            let value = UserDefaults.standard.float(forKey: Self.opacityKey)
+            // If not set (returns 0), default to 1.0
+            return value > 0 ? value : 1.0
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: Self.opacityKey)
+        }
+    }
+
     init() {
         setupFrontmostAppObserver()
     }
@@ -38,6 +53,11 @@ final class AgentStateMachine {
 
     /// Pin the currently active window
     func pinActiveWindow() async throws {
+        // すでにpinされている場合はunpinしてからpinする
+        if currentState == .mirroring || currentState == .mirrorHidden {
+            unpin()
+        }
+
         guard currentState == .idle else {
             throw AgentError.invalidStateTransition(from: currentState, to: .mirroring)
         }
@@ -53,6 +73,11 @@ final class AgentStateMachine {
 
     /// Pin a specific window
     func pinWindow(_ target: TargetWindowInfo) async throws {
+        // すでにpinされている場合はunpinしてからpinする
+        if currentState == .mirroring || currentState == .mirrorHidden {
+            unpin()
+        }
+
         guard currentState == .idle else {
             throw AgentError.invalidStateTransition(from: currentState, to: .mirroring)
         }
@@ -106,6 +131,9 @@ final class AgentStateMachine {
         mirrorController.onUnpin = { [weak self] in
             self?.unpin()
         }
+
+        // Apply saved opacity
+        mirrorController.setOpacity(savedOpacity)
 
         // Show mirror window first
         mirrorController.showMirror()
@@ -161,6 +189,18 @@ final class AgentStateMachine {
             mirrorVisible: currentState == .mirroring,
             pinnedSince: pinnedSince
         )
+    }
+
+    /// Set the mirror opacity (0.1 - 1.0, i.e., 10% - 100%)
+    func setMirrorOpacity(_ opacity: Float) {
+        let clampedOpacity = max(0.1, min(1.0, opacity))
+        savedOpacity = clampedOpacity
+        mirrorWindowController?.setOpacity(clampedOpacity)
+    }
+
+    /// Get the current mirror opacity (from saved value or current controller)
+    var mirrorOpacity: Float {
+        mirrorWindowController?.mirrorOpacity ?? savedOpacity
     }
 
     // MARK: - Private

@@ -45,6 +45,9 @@ final class MirrorWindowController: NSObject {
     /// Get the screen where the mirror window is currently displayed
     var currentScreen: NSScreen? { window?.screen }
 
+    /// Current mirror opacity (10% - 100%)
+    private(set) var mirrorOpacity: Float = 1.0
+
     init(targetInfo: TargetWindowInfo, captureManager: WindowCaptureManager) {
         self.targetInfo = targetInfo
         self.captureManager = captureManager
@@ -92,10 +95,21 @@ final class MirrorWindowController: NSObject {
         stopGlobalMouseMonitoring()
 
         window?.hasShadow = true
-        // Make video layer opaque again
-        captureManager.videoLayer.opacity = 1
+        // Make video layer opaque again (use saved opacity)
+        captureManager.videoLayer.opacity = mirrorOpacity
         // Start receiving mouse events again
         window?.ignoresMouseEvents = false
+    }
+
+    /// Set the mirror opacity (0.1 - 1.0, i.e., 10% - 100%)
+    /// This affects the video layer opacity when the mirror is visible
+    func setOpacity(_ opacity: Float) {
+        // Clamp opacity to 10% - 100%
+        mirrorOpacity = max(0.1, min(1.0, opacity))
+        // Apply immediately if the mirror is currently visible (not hidden)
+        if window?.ignoresMouseEvents == false {
+            captureManager.videoLayer.opacity = mirrorOpacity
+        }
     }
 
     /// Close and destroy the mirror window
@@ -167,25 +181,35 @@ final class MirrorWindowController: NSObject {
     }
 
     /// Handle hover enter on mirror window
-    /// Activates target application and notifies state machine after delay
+    /// Sets opacity to 100% while hovering
     func handleHoverEnter() {
-        // Activate target application first
-        if let app = NSRunningApplication(processIdentifier: targetInfo.pid) {
-            app.activate()
-        }
+        // Set opacity to 100% while hovering
+        captureManager.videoLayer.opacity = 1.0
+    }
 
-        // Notify state machine to hide mirror after 250ms delay
-        // This allows the target window to become fully active before hiding
-        Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 250_000_000)
-            self?.onHoverChanged?(true)
-        }
+    /// Handle hover exit on mirror window (when not hidden)
+    /// Restores the user-set opacity
+    func handleNormalHoverExit() {
+        // Restore the user-set opacity
+        captureManager.videoLayer.opacity = mirrorOpacity
     }
 
     /// Handle hover exit on mirror window
     /// Notifies state machine to show mirror again
     func handleHoverExit() {
         onHoverChanged?(false)
+    }
+
+    /// Handle click on mirror window
+    /// Activates target application and hides the mirror
+    func handleClick() {
+        // Activate target application
+        if let app = NSRunningApplication(processIdentifier: targetInfo.pid) {
+            app.activate()
+        }
+
+        // Notify state machine to hide mirror
+        onHoverChanged?(true)
     }
 
     // MARK: - Global Mouse Monitoring
@@ -253,8 +277,13 @@ final class MirrorWindowController: NSObject {
         hoverView.onHover = { [weak self] isHovering in
             if isHovering {
                 self?.handleHoverEnter()
+            } else {
+                // Restore opacity when mouse exits (only when not hidden)
+                self?.handleNormalHoverExit()
             }
-            // Note: mouseExited is handled by global mouse monitoring when hidden
+        }
+        hoverView.onClick = { [weak self] in
+            self?.handleClick()
         }
         window.contentView?.addSubview(hoverView)
 
@@ -330,7 +359,6 @@ final class MirrorWindowController: NSObject {
                 // This offset needs to be accounted for in the coordinate conversion
 
                 // Calculate what the y should be relative to this screen
-                let screenMinY = screen.frame.minY
                 let screenMaxY = screen.frame.maxY
 
                 // The Quartz y coordinate is relative to the top of the global screen space
@@ -420,6 +448,7 @@ final class MirrorWindowController: NSObject {
 private class HoverHandlerView: NSView {
 
     var onHover: ((Bool) -> Void)?
+    var onClick: (() -> Void)?
 
     private var trackingArea: NSTrackingArea?
 
@@ -438,12 +467,14 @@ private class HoverHandlerView: NSView {
         // It's unsafe to call NSView methods during deallocation
         // prepareForRemoval() must be called before releasing the view
         onHover = nil
+        onClick = nil
         trackingArea = nil
     }
 
     /// Prepare view for removal - call before removeFromSuperview()
     func prepareForRemoval() {
         onHover = nil
+        onClick = nil
         if let existingArea = trackingArea {
             removeTrackingArea(existingArea)
             trackingArea = nil
@@ -478,6 +509,10 @@ private class HoverHandlerView: NSView {
 
     override func mouseExited(with event: NSEvent) {
         onHover?(false)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        onClick?()
     }
 }
 
