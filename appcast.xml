@@ -6,6 +6,14 @@
         <description>Pin app updates</description>
         <language>en</language>
         <item>
+            <title>0.1.2</title>
+            <pubDate>Wed, 28 Jan 2026 08:41:27 +0000</pubDate>
+            <sparkle:version>11</sparkle:version>
+            <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/southflowpeak/Pin/releases/download/v0.1.2/Pin-v0.1.2.zip" length="3056364" type="application/octet-stream" sparkle:edSignature="vg+7gWCMZthjgVuXWQYr7aevl488Abma0U6pony2cdNy1VNH4a08tfI+vF09j8rK0SduMnrExmMvgYJu4bhrAg=="/>
+        </item>
+        <item>
             <title>0.1.1</title>
             <pubDate>Sat, 24 Jan 2026 09:24:43 +0000</pubDate>
             <sparkle:version>10</sparkle:version>
@@ -20,14 +28,6 @@
             <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <enclosure url="https://github.com/southflowpeak/Pin/releases/download/v0.1.0/Pin-v0.1.0.zip" length="3053063" type="application/octet-stream" sparkle:edSignature="3Cqbqqu4O27f3XNnyhrlRUudYW/kaZLpJhZvgPUj3Dw7ssqIr0hi1ScciqH7GN77FZHZ+bc+DZwpSiuZJJFhCA=="/>
-        </item>
-        <item>
-            <title>0.1.0</title>
-            <pubDate>Sat, 24 Jan 2026 07:04:38 +0000</pubDate>
-            <sparkle:version>8</sparkle:version>
-            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/southflowpeak/Pin/releases/download/Pin-v0.1.0.zip" length="3053038" type="application/octet-stream" sparkle:edSignature="q/sq1uw0dj8XmdtYAAGQX9BMhVmXMA3SXJibqLg7DaR7P8wXNgC5B8Wu5icUc3uBhs4RdQeUTlIvynizfCDoDQ=="/>
         </item>
     </channel>
 </rss>
