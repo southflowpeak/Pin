@@ -25,7 +25,7 @@ See Pin in action: [southflowpeak.com/pin](https://southflowpeak.com/pin)
 
 ### Download
 
-👉 [**Download Pin v0.1.0**](https://github.com/southflowpeak/Pin/releases/download/v0.1.0/Pin-v0.1.0.zip)
+👉 [**Download Pin v0.1.3**](https://github.com/southflowpeak/Pin/releases/download/v0.1.3/Pin-v0.1.3.zip)
 
 ### System Requirements
 
